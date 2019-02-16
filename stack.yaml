@@ -45,6 +45,9 @@ packages:
 # Extra package databases containing global packages
 # extra-package-dbs: []
 
+extra-deps:
+- ncurses-0.2.16
+
 # Control whether we use the GHC we find on the path
 # system-ghc: true
 #
