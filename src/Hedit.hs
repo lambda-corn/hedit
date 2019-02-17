@@ -41,7 +41,7 @@ backspace ∷ Int → State → State
 backspace offset (State (Cursor y x) buffer) =
     State (Cursor y (x - 1)) updatedBuffer
       where
-        updatedBuffer = updateAt (y + offset) x buffer
+        updatedBuffer = updateAt (y + offset) (x - 1) buffer
 
         deleteAt ∷ Int → String → String
         deleteAt 0 (a:as) = as

@@ -26,10 +26,11 @@ mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer) = do
   render
   ev <- getEvent w Nothing
   case ev of
-    Just ev' | ev' == EventCharacter 'q' -> return ()
-    Just (EventSpecialKey KeyBackspace)  -> mainloop w (Screen verticalOffset) (backspace verticalOffset (State (Cursor cursorY cursorX) buffer))
-    Just (EventCharacter c) | isPrint c  -> mainloop w (Screen verticalOffset) (write c verticalOffset (State (Cursor cursorY cursorX) buffer))
-    Just ev'                             -> mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer)
+    Just ev' | ev' == EventCharacter 'q'  -> return ()
+    Just (EventSpecialKey _)              -> return ()
+    Just (EventCharacter c) | isPrint c   -> mainloop w (Screen verticalOffset) (write c verticalOffset (State (Cursor cursorY cursorX) buffer))
+    Just (EventCharacter b) | b == '\DEL' -> mainloop w (Screen verticalOffset) (backspace verticalOffset (State (Cursor cursorY cursorX) buffer))
+    Just ev'                              -> mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer)
 
 drawCursor ∷ Cursor → Update()
 drawCursor (Cursor cursorY cursorX) =
