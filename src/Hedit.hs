@@ -23,8 +23,11 @@ data Cursor = Cursor Int Int
 
 data State = State Cursor Buffer
 
-write ∷ Char → State → State
-write c s = s
+write ∷ Char → Int → State → State
+write c offset (State (Cursor y x) buffer) =
+    State (Cursor y (x + 1)) updatedBuffer
+      where
+        updatedBuffer = updateAt c (y + offset) x buffer
 
 backspace ∷ State → State
 backspace s = s
@@ -56,3 +59,10 @@ pageUp s = s
 pageDown ∷ State → State
 pageDown s = s
 
+insertAt ∷ Char → Int → String → String
+insertAt newElement 0 as     = newElement:as
+insertAt newElement i (a:as) = a : insertAt newElement (i - 1) as
+
+updateAt ∷ Char → Int → Int → Buffer → Buffer
+updateAt newElement 0 j (a:as) = insertAt newElement j a : as
+updateAt newElement i j (a:as) = a : updateAt newElement (i - 1) j as
