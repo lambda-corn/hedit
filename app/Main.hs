@@ -27,7 +27,7 @@ mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer) = do
   ev <- getEvent w Nothing
   case ev of
     Just ev' | ev' == EventCharacter 'q' -> return ()
-    Just (EventCharacter c) | c == '\b'  -> mainloop w (Screen verticalOffset) (backspace verticalOffset (State (Cursor cursorY cursorX) buffer))
+    Just (EventSpecialKey KeyBackspace)  -> mainloop w (Screen verticalOffset) (backspace verticalOffset (State (Cursor cursorY cursorX) buffer))
     Just (EventCharacter c) | isPrint c  -> mainloop w (Screen verticalOffset) (write c verticalOffset (State (Cursor cursorY cursorX) buffer))
     Just ev'                             -> mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer)
 
