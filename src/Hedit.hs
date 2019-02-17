@@ -1,7 +1,8 @@
+{-# LANGUAGE UnicodeSyntax #-}
+
 module Hedit
     ( Buffer
     , Cursor(..)
-    , VirtualScreen(..)
     , State(..)
     , write
     , backspace
@@ -20,40 +21,38 @@ type Buffer = [String]
 
 data Cursor = Cursor Int Int
 
-newtype VirtualScreen = VirtualScreen Int
+data State = State Cursor Buffer
 
-data State = State VirtualScreen Cursor Buffer
-
-write :: Char -> State -> State
+write ∷ Char → State → State
 write c s = s
 
-backspace :: State -> State
+backspace ∷ State → State
 backspace s = s
 
-moveRight :: State -> State
+moveRight ∷ State → State
 moveRight s = s
 
-moveLeft :: State -> State
+moveLeft ∷ State → State
 moveLeft s = s
 
-moveDown :: State -> State
+moveDown ∷ State → State
 moveDown s = s
 
-moveUp :: State -> State
+moveUp ∷ State → State
 moveUp s = s
 
-tab :: State -> State
+tab ∷ State → State
 tab s = s
 
-save :: String -> Buffer -> IO ()
+save ∷ String → Buffer → IO ()
 save filename buffer = print "Hello"
 
-load :: String -> IO (Buffer)
-load filename = return (["Hello"])
+load ∷ String → IO Buffer
+load filename = return ["Hello"]
 
-pageUp :: State -> State
+pageUp ∷ State → State
 pageUp s = s
 
-pageDown :: State -> State
+pageDown ∷ State → State
 pageDown s = s
 
