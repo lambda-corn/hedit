@@ -16,7 +16,7 @@ main ∷ IO ()
 main = runCurses $ do
   setEcho False
   w <- defaultWindow
-  mainloop w (Screen 0) (State (Cursor 0 0) [])
+  mainloop w (Screen 0) (State (Cursor 0 0) [[]])
 
 mainloop ∷ Window → Screen -> State → Curses ()
 mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer) = do
