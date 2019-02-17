@@ -27,10 +27,29 @@ write ∷ Char → Int → State → State
 write c offset (State (Cursor y x) buffer) =
     State (Cursor y (x + 1)) updatedBuffer
       where
-        updatedBuffer = updateAt c (y + offset) x buffer
+        updatedBuffer = updateAt (y + offset) x buffer
 
-backspace ∷ State → State
-backspace s = s
+        writeAt ∷ Int → String → String
+        writeAt 0 as     = c:as
+        writeAt i (a:as) = a : writeAt (i - 1) as
+
+        updateAt ∷ Int → Int → Buffer → Buffer
+        updateAt 0 j (a:as) = writeAt j a : as
+        updateAt i j (a:as) = a : updateAt (i - 1) j as
+
+backspace ∷ Int → State → State
+backspace offset (State (Cursor y x) buffer) =
+    State (Cursor y (x - 1)) updatedBuffer
+      where
+        updatedBuffer = updateAt (y + offset) x buffer
+
+        deleteAt ∷ Int → String → String
+        deleteAt 0 (a:as) = as
+        deleteAt i (a:as) = a : deleteAt (i - 1) as
+
+        updateAt ∷ Int → Int → Buffer → Buffer
+        updateAt 0 j (a:as) = deleteAt j a : as
+        updateAt i j (a:as) = a : updateAt (i - 1) j as
 
 moveRight ∷ State → State
 moveRight s = s
@@ -66,3 +85,4 @@ insertAt newElement i (a:as) = a : insertAt newElement (i - 1) as
 updateAt ∷ Char → Int → Int → Buffer → Buffer
 updateAt newElement 0 j (a:as) = insertAt newElement j a : as
 updateAt newElement i j (a:as) = a : updateAt newElement (i - 1) j as
+
