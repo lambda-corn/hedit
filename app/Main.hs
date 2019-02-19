@@ -4,6 +4,7 @@ module Main where
 
 import           Control.Monad
 import           Data.Char
+import           Data.List
 import           System.IO
 import           UI.NCurses
 
@@ -18,7 +19,7 @@ main = runCurses $ do
   w <- defaultWindow
   mainloop w (Screen 0) (State (Cursor 0 0) [[]])
 
-mainloop ∷ Window → Screen -> State → Curses ()
+mainloop ∷ Window → Screen → State → Curses ()
 mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer) = do
   updateWindow w $ do
     drawBuffer buffer (Screen verticalOffset)
@@ -30,6 +31,7 @@ mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer) = do
     Just (EventSpecialKey _)              -> return ()
     Just (EventCharacter c) | isPrint c   -> mainloop w (Screen verticalOffset) (write c verticalOffset (State (Cursor cursorY cursorX) buffer))
     Just (EventCharacter b) | b == '\DEL' -> mainloop w (Screen verticalOffset) (backspace verticalOffset (State (Cursor cursorY cursorX) buffer))
+    Just (EventCharacter e) | e == '\n'   -> mainloop w (Screen verticalOffset) (newLine verticalOffset (State (Cursor cursorY cursorX) buffer))
     Just ev'                              -> mainloop w (Screen verticalOffset) (State (Cursor cursorY cursorX) buffer)
 
 drawCursor ∷ Cursor → Update()
@@ -38,9 +40,11 @@ drawCursor (Cursor cursorY cursorX) =
 
 drawBuffer ∷ Buffer → Screen → Update()
 drawBuffer buffer (Screen verticalOffset) = do
-  clear
-  (h, _) <- windowSize
-  forM_ (lines $ fromIntegral h) drawString
-    where lines h = fmap snd
-                $ filter (\ (i, s) -> i >= verticalOffset && i < verticalOffset + h)
-                $ zip [0..] buffer
+    clear
+    (h, _) <- windowSize
+    forM_ (reverse $ lines $ fromIntegral h) (\ (number, text) -> do
+                                                  moveCursor (fromIntegral number) 0
+                                                  drawString text)
+  where
+    lines h = filter (\ (i, s) -> i >= verticalOffset && i < verticalOffset + h)
+              $ zip [0..] buffer
