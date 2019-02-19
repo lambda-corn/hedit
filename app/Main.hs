@@ -43,8 +43,8 @@ drawBuffer buffer (Screen verticalOffset) = do
     clear
     (h, _) <- windowSize
     forM_ (reverse $ lines $ fromIntegral h) (\ (number, text) -> do
-                                                  moveCursor (fromIntegral number) 0
-                                                  drawString text)
+      moveCursor (fromIntegral number) 0
+      drawString text)
   where
     lines h = filter (\ (i, s) -> i >= verticalOffset && i < verticalOffset + h)
-              $ zip [0..] buffer
+            $ zip [0..] buffer
