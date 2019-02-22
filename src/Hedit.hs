@@ -59,9 +59,9 @@ moveLeft state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
 
 moveDown ∷ State → State
 moveDown state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
-    | cy < length buffer = let nextLine = buffer!!(vsy + cy + 1) 
-                           in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
-    | otherwise          = state
+    | cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1) 
+                               in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
+    | otherwise              = state
 
 moveUp ∷ State → State
 moveUp state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
@@ -88,21 +88,19 @@ newLine ∷ State → State
 newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
     State (VirtualScreen vsy vsx) (Cursor (cy + 1) 0) updatedBuffer
   where
-    updatedBuffer = addNewLineAt cx (cy + vsy) buffer
+    updatedBuffer = cutLineAtRow cy cx buffer
 
-    -- addNewLineAt ∷ Int → String -> Buffer → Buffer
-    -- addNewLineAt 0 s (a:as) = a : s : as
-    -- addNewLineAt i s (a:as) = a : addNewLineAt (i - 1) as
-
-    addNewLineAt :: Int -> Int -> Buffer -> Buffer
-    addNewLineAt 0 cx (l:ls) = let (left, right) = cutLineAt cx l
-                              in (left : right : ls)
-    addNewLineAt y cx (l:ls) = l : addNewLineAt (y - 1) cx ls
-
-    cutLineAt :: Int -> String -> (String, String)
-    cutLineAt 0 (x:xs) = ([x], xs)
-    cutLineAt cx (x:xs) = let (left, right) = cutLineAt (cx - 1) xs
-                          in (x:left, right)
+    cutLineAtColumn :: Int -> String -> (String, String)
+    cutLineAtColumn _ []      = ([], [])
+    cutLineAtColumn 0 xs      = ([], xs)
+    cutLineAtColumn cx (x:xs) = let (left, right) = cutLineAtColumn (cx - 1) xs
+                                in (x:left, right)
+    
+    addLineAtRow :: Int -> Int -> Buffer -> Buffer
+    addLineAtRow _ _ []     = [[]]
+    addLineAtRow 0 x (l:ls) = let (left, right) = cutLineAtColumn x l
+                              in left : right : ls
+    cutLineAtRow y x (l:ls) = l : addLineAtRow (y - 1) x ls
 
 updateAt ∷ Int → Int → (Int -> String -> String) -> Buffer → Buffer
 updateAt 0 j f (a:as) = f j a : as
