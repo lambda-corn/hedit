@@ -59,7 +59,7 @@ moveLeft state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
 
 moveDown ∷ State → State
 moveDown state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
-    | cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1) 
+    | cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1)
                                in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
     | otherwise              = state
 
@@ -90,18 +90,18 @@ newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
   where
     updatedBuffer = cutLineAtRow cy cx buffer
 
-    cutLineAtColumn :: Int -> String -> (String, String)
+    cutLineAtColumn ∷ Int → String → (String, String)
     cutLineAtColumn _ []      = ([], [])
     cutLineAtColumn 0 xs      = ([], xs)
     cutLineAtColumn cx (x:xs) = let (left, right) = cutLineAtColumn (cx - 1) xs
-                                in (x:left, right)
-    
-    addLineAtRow :: Int -> Int -> Buffer -> Buffer
+                                in (x : left, right)
+
+    addLineAtRow ∷ Int → Int → Buffer → Buffer
     addLineAtRow _ _ []     = [[]]
     addLineAtRow 0 x (l:ls) = let (left, right) = cutLineAtColumn x l
                               in left : right : ls
     cutLineAtRow y x (l:ls) = l : addLineAtRow (y - 1) x ls
 
-updateAt ∷ Int → Int → (Int -> String -> String) -> Buffer → Buffer
+updateAt ∷ Int → Int → (Int → String → String) → Buffer → Buffer
 updateAt 0 j f (a:as) = f j a : as
 updateAt i j f (a:as) = a : updateAt (i - 1) j f as
