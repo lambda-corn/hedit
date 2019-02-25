@@ -38,7 +38,6 @@ updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
     clear
     (h, w) <- windowSize
     let (newVirtualScreen, Cursor ncy ncx) = updateScreenCoordinates vs c (fromIntegral h) (fromIntegral w)
-
     forM_ (reverse $ lines $ fromIntegral h) (\ (number, text) -> do
       moveCursor (fromIntegral (number - vsy)) 0
       drawString text)
@@ -47,6 +46,7 @@ updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
   where
     lines h = filter (\ (i, s) -> i >= vsy && i < vsy + h)
             $ zip [0..] buffer
+
     updateScreenCoordinates ∷ VirtualScreen → Cursor → Int → Int → (VirtualScreen, Cursor)
     updateScreenCoordinates (VirtualScreen vsy vsx) (Cursor cy cx) height width =
       let
