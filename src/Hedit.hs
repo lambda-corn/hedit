@@ -88,7 +88,7 @@ newLine ∷ State → State
 newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
     State (VirtualScreen vsy vsx) (Cursor (cy + 1) 0) updatedBuffer
   where
-    updatedBuffer = cutLineAtRow cy cx buffer
+    updatedBuffer = addLineAtRow cy cx buffer
 
     cutLineAtColumn ∷ Int → String → (String, String)
     cutLineAtColumn _ []      = ([], [])
@@ -100,7 +100,7 @@ newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
     addLineAtRow _ _ []     = [[]]
     addLineAtRow 0 x (l:ls) = let (left, right) = cutLineAtColumn x l
                               in left : right : ls
-    cutLineAtRow y x (l:ls) = l : addLineAtRow (y - 1) x ls
+    addLineAtRow y x (l:ls) = l : addLineAtRow (y - 1) x ls
 
 updateAt ∷ Int → Int → (Int → String → String) → Buffer → Buffer
 updateAt 0 j f (a:as) = f j a : as
