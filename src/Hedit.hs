@@ -88,7 +88,7 @@ newLine ∷ State → State
 newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
     State (VirtualScreen vsy vsx) (Cursor (cy + 1) 0) updatedBuffer
   where
-    updatedBuffer = addLineAtRow cy cx buffer
+    updatedBuffer = addLineAtRow (vsy + cy) (vsx + cx) buffer
 
     cutLineAtColumn ∷ Int → String → (String, String)
     cutLineAtColumn _ []      = ([], [])
