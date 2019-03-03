@@ -5,6 +5,7 @@ module Main where
 import           Control.Monad
 import           Data.Char
 import           Data.List
+import           System.Environment
 import           System.IO
 import           UI.NCurses
 
@@ -12,10 +13,15 @@ import           Hedit
 
 
 main ∷ IO ()
-main = runCurses $ do
-  setEcho False
-  w <- defaultWindow
-  mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) [[]])
+main = do
+  args <- getArgs
+  buffer <- if not (null args)
+            then lines <$> readFile (head args)
+            else  return [[]]
+  runCurses $ do
+    setEcho False
+    w <- defaultWindow
+    mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer)
 
 mainloop ∷ Window → State → Curses ()
 mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) = do
