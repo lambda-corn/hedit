@@ -44,7 +44,7 @@ updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
     clear
     (h, w) <- windowSize
     let (newVirtualScreen, Cursor ncy ncx) = updateScreenCoordinates vs c (fromIntegral h) (fromIntegral w)
-    forM_ (reverse $ lines $ fromIntegral h) (\ (number, text) -> do
+    forM_ (lines $ fromIntegral h) (\ (number, text) -> do
       moveCursor (fromIntegral (number - vsy)) 0
       drawString text)
     moveCursor (fromIntegral ncy) (fromIntegral ncx)
