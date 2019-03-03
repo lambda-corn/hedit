@@ -57,12 +57,12 @@ updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
     updateScreenCoordinates (VirtualScreen vsy vsx) (Cursor cy cx) height width =
       let
         nvsy
-          | cy >= height = vsy + 1
-          | cy < 0       = vsy - 1
+          | cy >= height = min (vsy + 1) (length buffer)
+          | cy < 0       = max (vsy - 1) 0
           | otherwise    = vsy
         nvsx
-          | cx >= width  = vsx + 1
-          | cx < 0       = vsx - 1
+          | cx >= width  = min (vsx + 1) (length (buffer!!cy))
+          | cx < 0       = max (vsx - 1) 0
           | otherwise    = vsx
         ncx
           | cx < 0       = 0

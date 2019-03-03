@@ -59,15 +59,16 @@ moveLeft state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
 
 moveDown ∷ State → State
 moveDown state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
-    | cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1)
-                               in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
-    | otherwise              = state
+    | vsy + cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1)
+                                      in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
+    | otherwise                    = state
 
 moveUp ∷ State → State
 moveUp state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
-    | cy > 0    = let previousLine = buffer!!(vsy + cy - 1)
-                  in State (VirtualScreen vsy vsx) (Cursor (cy - 1) (min (length previousLine) cx)) buffer
-    | otherwise = state
+    | cy == 0 && vsy == 0 = state
+    | cy >= 0             = let previousLine = buffer!!(vsy + cy - 1)
+                            in State (VirtualScreen vsy vsx) (Cursor (cy - 1) (min (length previousLine) cx)) buffer
+    | otherwise           = state
 
 tab ∷ State → State
 tab s = s
