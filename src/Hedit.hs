@@ -12,8 +12,6 @@ module Hedit
     , moveDown
     , moveUp
     , tab
-    , save
-    , load
     , pageUp
     , pageDown
     , newLine
@@ -72,12 +70,6 @@ moveUp state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
 
 tab ∷ State → State
 tab s = s
-
-save ∷ String → Buffer → IO ()
-save filename buffer = print "Hello"
-
-load ∷ String → IO Buffer
-load filename = return ["Hello"]
 
 pageUp ∷ State → State
 pageUp s = s

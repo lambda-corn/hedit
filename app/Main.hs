@@ -3,6 +3,7 @@
 module Main where
 
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Data.Char
 import           Data.List
 import           System.Environment
@@ -15,29 +16,36 @@ import           Hedit
 main ∷ IO ()
 main = do
   args <- getArgs
-  buffer <- if not (null args)
-            then lines <$> readFile (head args)
+  let filepath = if not (null args) then head args
+                 else "a.out"
+  buffer <- if not (null args) then lines <$> readFile (head args)
             else  return [[]]
   runCurses $ do
     setEcho False
     w <- defaultWindow
-    mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer)
+    mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer) filepath
 
-mainloop ∷ Window → State → Curses ()
-mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) = do
+mainloop ∷ Window → State → FilePath → Curses ()
+mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) filepath = do
   s' <- updateWindow w $ updateScreen s
   render
   ev <- getEvent w Nothing
   case ev of
     Just ev' | ev' == EventCharacter 'q'  -> return ()
-    Just (EventSpecialKey KeyRightArrow)  -> mainloop w (moveRight s')
-    Just (EventSpecialKey KeyLeftArrow)   -> mainloop w (moveLeft s')
-    Just (EventSpecialKey KeyDownArrow)   -> mainloop w (moveDown s')
-    Just (EventSpecialKey KeyUpArrow)     -> mainloop w (moveUp s')
-    Just (EventCharacter c) | isPrint c   -> mainloop w (write c s')
-    Just (EventCharacter b) | b == '\DEL' -> mainloop w (backspace s')
-    Just (EventCharacter e) | e == '\n'   -> mainloop w (newLine s')
-    Just ev'                              -> mainloop w s'
+    Just (EventCharacter s) | s == 's'    -> do
+                                             liftIO (save filepath (intercalate "\n" buffer))
+                                             mainloop w s' filepath
+    Just (EventSpecialKey KeyRightArrow)  -> mainloop w (moveRight s') filepath
+    Just (EventSpecialKey KeyLeftArrow)   -> mainloop w (moveLeft s') filepath
+    Just (EventSpecialKey KeyDownArrow)   -> mainloop w (moveDown s') filepath
+    Just (EventSpecialKey KeyUpArrow)     -> mainloop w (moveUp s') filepath
+    Just (EventCharacter c) | isPrint c   -> mainloop w (write c s') filepath
+    Just (EventCharacter b) | b == '\DEL' -> mainloop w (backspace s') filepath
+    Just (EventCharacter e) | e == '\n'   -> mainloop w (newLine s') filepath
+    Just ev'                              -> mainloop w s' filepath
+
+save ∷ FilePath → String → IO ()
+save = writeFile
 
 updateScreen ∷ State → Update State
 updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
