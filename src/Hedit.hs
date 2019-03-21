@@ -36,14 +36,33 @@ write c (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
     writeAt i (a:as) = a : writeAt (i - 1) as
 
 backspace ∷ State → State
-backspace (State (VirtualScreen vsy vsx) (Cursor y x) buffer) =
-    State (VirtualScreen vsy vsx) (Cursor y (x - 1)) updatedBuffer
+backspace (State (VirtualScreen vsy vsx) cursor@(Cursor y x) buffer) =
+    State (VirtualScreen vsy vsx) updatedCursor updatedBuffer
   where
-    updatedBuffer = updateAt (y + vsy) (x - 1) deleteAt buffer
+    updatedCursor = updateCursor cursor buffer
+    updatedBuffer = backspaceAt y x buffer
 
     deleteAt ∷ Int → String → String
     deleteAt 0 (a:as) = as
     deleteAt i (a:as) = a : deleteAt (i - 1) as
+
+    backspaceAt ∷ Int → Int → Buffer → Buffer
+    backspaceAt y x buffer
+      | x > 0  = updateAt (y + vsy) (x - 1) deleteAt buffer
+      | x == 0 = deleteLine (y + vsy) buffer
+
+    deleteLine ∷ Int → Buffer → Buffer
+    deleteLine row (p:l:ls)
+      | row == 0 = p : l : ls
+      | row > 1  = p : deleteLine (row - 1) (l : ls)
+      | row == 1 = (p ++ l) : ls
+
+    updateCursor ∷ Cursor → Buffer → Cursor
+    updateCursor (Cursor y x) buffer
+      | y == 0 && x == 0 = Cursor y x
+      | x > 0            = Cursor y (x - 1)
+      | x == 0           = let y' = max (y - 1) 0
+                           in Cursor y' (length (buffer!!y'))
 
 moveRight ∷ State → State
 moveRight state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
@@ -98,3 +117,4 @@ newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
 updateAt ∷ Int → Int → (Int → String → String) → Buffer → Buffer
 updateAt 0 j f (a:as) = f j a : as
 updateAt i j f (a:as) = a : updateAt (i - 1) j f as
+
