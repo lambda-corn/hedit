@@ -1,4 +1,4 @@
-# hedit
+# Hedit
 
 A command line text editor implemented in Haskell using the NCurses library.
 
