@@ -19,11 +19,11 @@ module Hedit
 
 type Buffer = [String]
 
-data Cursor = Cursor Int Int
+data Cursor = Cursor Int Int deriving (Eq, Show)
 
-data VirtualScreen = VirtualScreen Int Int
+data VirtualScreen = VirtualScreen Int Int deriving (Eq, Show)
 
-data State = State VirtualScreen Cursor Buffer
+data State = State VirtualScreen Cursor Buffer deriving (Eq, Show)
 
 write ∷ Char → State → State
 write c (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =

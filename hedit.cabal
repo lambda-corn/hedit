@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 165f3b92006ca1793135d96ea329064083fd613d3dc887c711ce0809e549a417
+-- hash: 4c32b7c91a8f4e511d1229e4e0afc5633ba8f41441807fa9154a59004413c961
 
 name:           hedit
 version:        0.1.0.0
@@ -61,5 +61,6 @@ test-suite hedit-test
   build-depends:
       base >=4.7 && <5
     , hedit
+    , hspec
     , ncurses
   default-language: Haskell2010
