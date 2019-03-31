@@ -4,7 +4,7 @@ A command line text editor implemented in Haskell using the NCurses library.
 
 ## Prerequisites
 
-In order to build the applicaiton and its dependencies, you should first install [Stack](https://github.com/commercialhaskell/stack/tree/stable)
+In order to build the applicaiton and its dependencies, you should first install [Stack](https://github.com/commercialhaskell/stack/tree/stable).
 
 ## Build
 
