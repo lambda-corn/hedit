@@ -1,6 +1,6 @@
 # Hedit
 
-A minimalistic command line text editor implemented in Haskell using the NCurses library.
+A minimalist command line text editor implemented in Haskell using the NCurses library.
 
 ## Prerequisites
 
