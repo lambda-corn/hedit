@@ -23,6 +23,8 @@ main = do
   runCurses $ do
     setEcho False
     w <- defaultWindow
+    -- setKeypad w True
+    setRaw True
     mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer Insert) filepath
 
 mainloop ∷ Window → State → FilePath → Curses ()
