@@ -5,7 +5,6 @@ module Hedit
     , Cursor(..)
     , State(..)
     , VirtualScreen(..)
-    , Mode(..)
     , write
     , backspace
     , moveRight
@@ -24,13 +23,11 @@ data Cursor = Cursor Int Int deriving (Eq, Show)
 
 data VirtualScreen = VirtualScreen Int Int deriving (Eq, Show)
 
-data Mode = Insert | Command deriving (Eq, Show)
-
-data State = State VirtualScreen Cursor Buffer Mode deriving (Eq, Show)
+data State = State VirtualScreen Cursor Buffer deriving (Eq, Show)
 
 write ∷ Char → State → State
-write c (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode) =
-    State (VirtualScreen vsy vsx) (Cursor cy (cx + 1)) updatedBuffer mode
+write c (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
+    State (VirtualScreen vsy vsx) (Cursor cy (cx + 1)) updatedBuffer
   where
     updatedBuffer = updateAt (cy + vsy) cx writeAt buffer
 
@@ -39,8 +36,8 @@ write c (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode) =
     writeAt i (a:as) = a : writeAt (i - 1) as
 
 backspace ∷ State → State
-backspace (State (VirtualScreen vsy vsx) cursor@(Cursor y x) buffer mode) =
-    State (VirtualScreen vsy vsx) updatedCursor updatedBuffer mode
+backspace (State (VirtualScreen vsy vsx) cursor@(Cursor y x) buffer) =
+    State (VirtualScreen vsy vsx) updatedCursor updatedBuffer
   where
     updatedCursor = updateCursor cursor buffer
     updatedBuffer = backspaceAt y x buffer
@@ -68,26 +65,26 @@ backspace (State (VirtualScreen vsy vsx) cursor@(Cursor y x) buffer mode) =
                            in Cursor y' (length (buffer!!y'))
 
 moveRight ∷ State → State
-moveRight state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode)
-    | cx < length (buffer!!(vsy + cy)) = State (VirtualScreen vsy vsx) (Cursor cy (cx + 1)) buffer mode
+moveRight state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
+    | cx < length (buffer!!(vsy + cy)) = State (VirtualScreen vsy vsx) (Cursor cy (cx + 1)) buffer
     | otherwise                        = state
 
 moveLeft ∷ State → State
-moveLeft state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode)
-    | cx > 0    = State (VirtualScreen vsy vsx) (Cursor cy (cx - 1)) buffer mode
+moveLeft state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
+    | cx > 0    = State (VirtualScreen vsy vsx) (Cursor cy (cx - 1)) buffer
     | otherwise = state
 
 moveDown ∷ State → State
-moveDown state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode)
+moveDown state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
     | vsy + cy < length buffer - 1 = let nextLine = buffer!!(vsy + cy + 1)
-                                      in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer mode
+                                      in State (VirtualScreen vsy vsx) (Cursor (cy + 1) (min (length nextLine) cx)) buffer
     | otherwise                    = state
 
 moveUp ∷ State → State
-moveUp state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode)
+moveUp state@(State (VirtualScreen vsy vsx) (Cursor cy cx) buffer)
     | cy == 0 && vsy == 0 = state
     | cy >= 0             = let previousLine = buffer!!(vsy + cy - 1)
-                            in State (VirtualScreen vsy vsx) (Cursor (cy - 1) (min (length previousLine) cx)) buffer mode
+                            in State (VirtualScreen vsy vsx) (Cursor (cy - 1) (min (length previousLine) cx)) buffer
     | otherwise           = state
 
 tab ∷ State → State
@@ -100,8 +97,8 @@ pageDown ∷ State → State
 pageDown s = s
 
 newLine ∷ State → State
-newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer mode) =
-    State (VirtualScreen vsy vsx) (Cursor (cy + 1) 0) updatedBuffer mode
+newLine (State (VirtualScreen vsy vsx) (Cursor cy cx) buffer) =
+    State (VirtualScreen vsy vsx) (Cursor (cy + 1) 0) updatedBuffer
   where
     updatedBuffer = addLineAtRow (vsy + cy) (vsx + cx) buffer
 
