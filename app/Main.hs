@@ -23,32 +23,45 @@ main = do
   runCurses $ do
     setEcho False
     w <- defaultWindow
-    mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer) filepath
+    mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer Insert) filepath
 
 mainloop ∷ Window → State → FilePath → Curses ()
-mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) filepath = do
+mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer mode) filepath = do
   s' <- updateWindow w $ updateScreen s
   render
   ev <- getEvent w Nothing
+  case mode of
+    Insert  ->  handleKey ev w s' filepath
+    Command -> handleCommand ev w s' filepath
+
+handleCommand ∷ Maybe Event → Window → State → FilePath → Curses ()
+handleCommand ev w state@(State vs cursor buffer mode) filepath =
   case ev of
-    Just ev' | ev' == EventCharacter 'q'  -> return ()
-    Just (EventCharacter s) | s == 's'    -> do
-                                             liftIO (save filepath (intercalate "\n" buffer))
-                                             mainloop w s' filepath
-    Just (EventSpecialKey KeyRightArrow)  -> mainloop w (moveRight s') filepath
-    Just (EventSpecialKey KeyLeftArrow)   -> mainloop w (moveLeft s') filepath
-    Just (EventSpecialKey KeyDownArrow)   -> mainloop w (moveDown s') filepath
-    Just (EventSpecialKey KeyUpArrow)     -> mainloop w (moveUp s') filepath
-    Just (EventCharacter c) | isPrint c   -> mainloop w (write c s') filepath
-    Just (EventCharacter b) | b == '\DEL' -> mainloop w (backspace s') filepath
-    Just (EventCharacter e) | e == '\n'   -> mainloop w (newLine s') filepath
-    Just ev'                              -> mainloop w s' filepath
+    Just (EventCharacter c) | c == 's' -> do
+                                          liftIO (save filepath (intercalate "\n" buffer))
+                                          mainloop w (State vs cursor buffer Insert) filepath
+    Just (EventCharacter c) | c == 'q' -> return ()
+    Nothing                            -> mainloop w state filepath
+
+handleKey ∷ Maybe Event → Window → State → FilePath → Curses()
+handleKey ev w state@(State vs cursor buffer mode) filepath =
+  case ev of
+    Just (EventSpecialKey KeyCommand)     -> mainloop w (State vs cursor ("suka" : buffer) Command) filepath
+    Just (EventSpecialKey KeyRightArrow)  -> mainloop w (moveRight state) filepath
+    Just (EventSpecialKey KeyLeftArrow)   -> mainloop w (moveLeft state) filepath
+    Just (EventSpecialKey KeyDownArrow)   -> mainloop w (moveDown state) filepath
+    Just (EventSpecialKey KeyUpArrow)     -> mainloop w (moveUp state) filepath
+    Just (EventCharacter c) | isPrint c   -> mainloop w (write c state) filepath
+    Just (EventCharacter b) | b == '\DEL' -> mainloop w (backspace state) filepath
+    Just (EventCharacter e) | e == '\n'   -> mainloop w (newLine state) filepath
+    Just ev'                              -> mainloop w state filepath
+    Nothing                               -> mainloop w state filepath
 
 save ∷ FilePath → String → IO ()
 save = writeFile
 
 updateScreen ∷ State → Update State
-updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
+updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer mode) = do
     clear
     (h, w) <- windowSize
     let (newVirtualScreen, Cursor ncy ncx) = updateScreenCoordinates vs c (fromIntegral h) (fromIntegral w)
@@ -56,7 +69,7 @@ updateScreen (State vs@(VirtualScreen vsy vsx) c@(Cursor cy cx) buffer) = do
       moveCursor (fromIntegral (number - vsy)) 0
       drawString text)
     moveCursor (fromIntegral ncy) (fromIntegral ncx)
-    return (State newVirtualScreen (Cursor ncy ncx) buffer)
+    return (State newVirtualScreen (Cursor ncy ncx) buffer mode)
   where
     lines h = filter (\ (i, s) -> i >= vsy && i < vsy + h)
             $ zip [0..] buffer
