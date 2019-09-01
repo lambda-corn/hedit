@@ -23,16 +23,18 @@ main = do
   runCurses $ do
     setEcho False
     w <- defaultWindow
+    setKeypad w True
+    setRaw True
     mainloop w (State (VirtualScreen 0 0) (Cursor 0 0) buffer) filepath
 
 mainloop ∷ Window → State → FilePath → Curses ()
 mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) filepath = do
-  s' <- updateWindow w $ updateScreen s
+  s'@(State vs cursor buffer') <- updateWindow w $ updateScreen s
   render
   ev <- getEvent w Nothing
   case ev of
-    Just ev' | ev' == EventCharacter 'q'  -> return ()
-    Just (EventCharacter s) | s == 's'    -> do
+    Just (EventCharacter c) | c == '\ETX' -> return ()
+    Just (EventCharacter c) | c == '\DC3' -> do
                                              liftIO (save filepath (intercalate "\n" buffer))
                                              mainloop w s' filepath
     Just (EventSpecialKey KeyRightArrow)  -> mainloop w (moveRight s') filepath
@@ -40,9 +42,10 @@ mainloop w s@(State (VirtualScreen vsy vsx) (Cursor cursorY cursorX) buffer) fil
     Just (EventSpecialKey KeyDownArrow)   -> mainloop w (moveDown s') filepath
     Just (EventSpecialKey KeyUpArrow)     -> mainloop w (moveUp s') filepath
     Just (EventCharacter c) | isPrint c   -> mainloop w (write c s') filepath
-    Just (EventCharacter b) | b == '\DEL' -> mainloop w (backspace s') filepath
-    Just (EventCharacter e) | e == '\n'   -> mainloop w (newLine s') filepath
+    Just (EventCharacter c) | c == '\DEL' -> mainloop w (backspace s') filepath
+    Just (EventCharacter c) | c == '\n'   -> mainloop w (newLine s') filepath
     Just ev'                              -> mainloop w s' filepath
+    Nothing                               -> mainloop w s' filepath
 
 save ∷ FilePath → String → IO ()
 save = writeFile
